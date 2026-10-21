@@ -1,0 +1,395 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Chứng nhận sự đáng yêu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Be+Vietnam+Pro:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap">
+
+<!--
+=====================================================================
+  KHU VỰC CHỈNH SỬA  (chỉ cần sửa phần này, không cần đụng code bên dưới)
+=====================================================================
+  1) CONFIG  : nội dung chung cho mọi chứng nhận
+  2) GIRLS   : danh sách từng bạn nữ (thêm/xóa/sửa tùy ý)
+     - name     : họ và tên (hiện trong danh sách chọn và trên chứng nhận)
+     - nickname : tên gọi trong lời chúc (bỏ trống thì dùng name)
+     - birthday : ngày xuất xưởng (ngày tháng năm sinh)
+     - role     : chức vụ
+     - trait    : đặc điểm
+     - photo    : đường dẫn ảnh, ví dụ "anh/linh.jpg" (bỏ trống thì hiện ảnh chữ cái đầu)
+     - wish     : (tuỳ chọn) lời chúc riêng, dùng {name} để chèn tên; bỏ trống thì dùng CONFIG.wish
+     - validity, id : (tuỳ chọn) ghi đè thời hạn / mã số của riêng bạn đó
+  Ba bạn bên dưới chỉ là dữ liệu MẪU để xem thử.
+=====================================================================
+-->
+<script>
+const CONFIG = {
+  occasion: "20/10",                           // ngày lễ, hiện ở phụ đề và lời chúc
+  className: "12/1",                           // tên lớp, hiện ở trang chọn tên
+  office: "TRUNG TÂM KIỂM ĐỊNH NHAN SẮC & DỄ THƯƠNG",  // dòng trên cùng của chứng nhận
+  title: "CHỨNG CHỈ NHÂN VẬT ĐẶC BIỆT",             // tiêu đề chứng nhận
+  subtitle: "Phiên bản độc nhất",              // phụ đề (tự thêm ngày lễ phía sau)
+  validity: "Vĩnh viễn",                       // thời hạn
+  idPrefix: "2010-cute",                       // mã số = idPrefix + số thứ tự (vd 2010-cute-01)
+  from: "Tập thể con trai 12/1",               // người gửi, dòng cuối chứng nhận
+  wish: "Chúc {name} có một ngày 20/10 thật hạnh phúc, ngọt ngào và đong đầy yêu thương! Mong những kỷ niệm ngọt ngào của lớp 12/1 luôn là điểm tựa vững chắc trên hành trang trưởng thành.",
+  labels: {                                    // tên các dòng thông tin
+    name: "Họ và tên",
+    birthday: "Ngày đáp xuống Trái Đất",
+    role: "Chức vụ",
+    trait: "Đặc điểm",
+    validity: "Thời hạn"
+  }
+};
+
+const GIRLS = [
+  { name: "Nguyễn Hà Lâm Thư", nickname: "Thư có nhiều tâm tư", birthday: "16/05/2009", role: "Giám đốc Ngủ gật", trait: "Học giỏi và hay ngủ", photo: "" },
+  { name: "Văn Thị Như Ý", nickname: "Mercedes", birthday: "27/01/2009", role: "Boss tối cao( lớp trưởng)", trait: "Thần thái thủ lĩnh", photo: "" },
+  { name: "Nguyễn Lê Uyển Nhi", nickname: "Nhi Nguyễn", birthday: "05/06/2009", role: "Bứ thi quyền lực", trait: "Dịu dàng, nói là làm", photo: "" }
+];
+</script>
+
+<style>
+/* Bố cục: một cột giữa màn hình. Trang 1 là thẻ chọn tên, trang 2 là chứng nhận dọc (tỉ lệ giấy 6x9) kèm hai nút. */
+:root {
+  /* giao diện trang (đổi theo sáng/tối) */
+  --bg: #fdf1f5;
+  --fg: #3a2a37;
+  --muted: #86697c;
+  --accent: #d8467a;
+  --accent-ink: #ffffff;
+  --surface: #ffffff;
+  --line: #f1cfdc;
+
+  /* chứng nhận: tờ giấy cố định, giống nhau ở mọi giao diện để ảnh chụp luôn đẹp */
+  --c-paper-a: #ffffff;
+  --c-paper-b: #eaf0ff;
+  --c-pink: #e8689a;
+  --c-pink-soft: #fbd3e2;
+  --c-blue: #4a5fb5;
+  --c-ink: #3a2f4a;
+  --c-muted: #8c7f9c;
+
+  --font-display: "Baloo 2", "Be Vietnam Pro", system-ui, sans-serif;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Dancing Script", "Brush Script MT", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1e1520; --fg: #f7e8ef; --muted: #c1a2b4; --accent: #f06b9a; --accent-ink: #2a1020;
+    --surface: #2b2030; --line: #4a3650; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1e1520; --fg: #f7e8ef; --muted: #c1a2b4; --accent: #f06b9a; --accent-ink: #2a1020;
+  --surface: #2b2030; --line: #4a3650; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-block: 28px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background-image:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 16%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 92% 92%, color-mix(in srgb, #7a8fd6 18%, transparent) 0, transparent 38%);
+  background-attachment: fixed;
+}
+.wrap { width: min(100%, 420px); margin-inline: auto; display: flex; flex-direction: column; gap: 18px; }
+
+/* ---------- Trang 1: chọn tên ---------- */
+.pick {
+  background: var(--surface);
+  border: 1.5px dashed var(--line);
+  border-radius: 22px;
+  padding: 30px 22px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  text-align: center;
+}
+.eyebrow {
+  font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin: 0;
+}
+.pick h1 {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(28px, 8vw, 36px); line-height: 1.1; margin: 0;
+  text-wrap: balance;
+}
+.pick p { margin: 0; color: var(--muted); }
+.pick label { font-size: 13px; font-weight: 600; text-align: left; margin-top: 6px; }
+select, .btn {
+  font: inherit; width: 100%; border-radius: 14px; min-height: 48px;
+}
+select {
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--fg);
+  padding: 0 14px;
+}
+.btn {
+  border: 0; cursor: pointer; font-weight: 600; font-size: 15px;
+  background: var(--accent); color: var(--accent-ink);
+  padding: 0 18px;
+  transition: transform .15s ease, filter .15s ease;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: scale(.98); }
+.btn.ghost { background: transparent; color: var(--fg); border: 1.5px solid var(--line); }
+.btn:disabled { opacity: .6; cursor: progress; }
+:is(select, .btn, button):focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+.hint { min-height: 1.4em; font-size: 13px; color: var(--accent); margin: -4px 0 0; text-align: left; }
+.fine { font-size: 12.5px; }
+
+/* ---------- Trang 2: chứng nhận ---------- */
+.cert {
+  position: relative;
+  width: 100%;
+  padding: 26px 24px 22px;
+  background: linear-gradient(165deg, var(--c-paper-a) 0%, var(--c-paper-b) 100%);
+  color: var(--c-ink);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px color-mix(in srgb, #7a4a63 22%, transparent);
+}
+.cert::before {
+  content: ""; position: absolute; inset: 8px;
+  border: 2px dashed var(--c-pink); border-radius: 16px; pointer-events: none;
+}
+.cert-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.office {
+  margin: 0; font-size: 10.5px; letter-spacing: .12em; font-weight: 600; text-align: center;
+  color: var(--c-pink);
+}
+.cert-title {
+  margin: 0; font-family: var(--font-display); font-weight: 800; color: var(--c-blue);
+  font-size: clamp(22px, 6.6vw, 28px); line-height: 1.1; text-align: center; text-wrap: balance;
+}
+.cert-sub { margin: -6px 0 0; font-size: 13px; color: var(--c-muted); text-align: center; }
+
+.photo-frame {
+  position: relative; width: 52%; max-width: 190px; aspect-ratio: 4 / 5;
+  border-radius: 16px; padding: 5px;
+  background: linear-gradient(140deg, var(--c-pink-soft), #cdd8ff);
+  margin-top: 4px;
+}
+.photo, .photo-fallback { width: 100%; height: 100%; border-radius: 12px; display: block; object-fit: cover; }
+.photo-fallback {
+  display: grid; place-items: center;
+  background: linear-gradient(160deg, #ffe3ee, #dfe7ff);
+  font-family: var(--font-display); font-weight: 800; font-size: 64px; color: var(--c-pink);
+}
+.stamp {
+  position: absolute; right: -26px; bottom: -14px; width: 66px; height: 66px; border-radius: 50%;
+  display: grid; place-items: center; text-align: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 10px; line-height: 1.15; letter-spacing: .04em;
+  color: var(--c-pink); background: rgba(255,255,255,.92);
+  border: 2px dashed var(--c-pink); transform: rotate(-14deg);
+}
+.rows { width: 100%; margin: 14px 0 0; display: grid; gap: 9px; }
+.row { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: baseline; font-size: 13.5px; }
+.row dt { margin: 0; color: var(--c-pink); font-weight: 600; }
+.row dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.divider { width: 100%; height: 0; border-top: 1.5px dotted var(--c-pink-soft); margin: 4px 0 0; }
+.to { margin: 0; align-self: flex-start; font-family: var(--font-display); font-weight: 700; color: var(--c-blue); font-size: 15px; }
+.wish { margin: 0; font-family: var(--font-script); font-weight: 600; font-size: 21px; line-height: 1.3; color: var(--c-ink); text-align: center; text-wrap: pretty; }
+.foot { width: 100%; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--c-muted); margin-top: 2px; }
+.foot b { color: var(--c-blue); font-weight: 600; }
+.actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+/* ---------- Khung ảnh chụp ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: rgba(20, 10, 18, .82);
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.modal img { max-width: 100%; max-height: calc(100% - 130px); border-radius: 14px; background: #fff; }
+.modal p { margin: 0; color: #fff; text-align: center; font-size: 14px; max-width: 360px; }
+.modal .btn { width: auto; min-width: 140px; background: #fff; color: #3a2a37; }
+
+@media (max-width: 380px) {
+  .row { grid-template-columns: 1fr; gap: 0; }
+  .cert { padding-inline: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+
+<main class="wrap">
+  <!-- Trang 1 -->
+  <section id="page1" class="pick" aria-labelledby="h1">
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="h1">Chứng nhận dành riêng cho bạn</h1>
+    <p>Chọn tên của bạn trong danh sách để nhận chứng nhận.</p>
+    <label for="nameSelect">Tên của bạn</label>
+    <select id="nameSelect"><option value="">-- Chọn tên --</option></select>
+    <p class="hint" id="hint" role="status"></p>
+    <button class="btn" id="btnOpen" type="button">Mở chứng nhận</button>
+    <p class="fine">Mỗi bạn nhận một chứng nhận riêng, có hiệu lực vĩnh viễn.</p>
+  </section>
+
+  <!-- Trang 2 -->
+  <section id="page2" hidden>
+    <div class="wrap">
+      <div class="cert" id="cert">
+        <div class="cert-inner">
+          <p class="office" id="cOffice"></p>
+          <h2 class="cert-title" id="cTitle"></h2>
+          <p class="cert-sub" id="cSub"></p>
+
+          <div class="photo-frame">
+            <div id="photoSlot" style="width:100%;height:100%"></div>
+            <div class="stamp">ĐÃ KIỂM ĐỊNH<br>100%</div>
+          </div>
+
+          <dl class="rows">
+            <div class="row"><dt id="lName"></dt><dd id="vName"></dd></div>
+            <div class="row"><dt id="lBirthday"></dt><dd id="vBirthday"></dd></div>
+            <div class="row"><dt id="lRole"></dt><dd id="vRole"></dd></div>
+            <div class="row"><dt id="lTrait"></dt><dd id="vTrait"></dd></div>
+            <div class="row"><dt id="lValidity"></dt><dd id="vValidity"></dd></div>
+          </dl>
+
+          <div class="divider"></div>
+          <p class="to" id="cTo"></p>
+          <p class="wish" id="cWish"></p>
+          <div class="foot"><span id="cFrom"></span><span id="cId"></span></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="btnShot" type="button">Chụp chứng nhận</button>
+        <button class="btn ghost" id="btnBack" type="button">Chọn lại tên</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="Ảnh chứng nhận">
+  <img id="shotImg" alt="Ảnh chứng nhận">
+  <p id="shotNote">Nhấn giữ vào ảnh rồi chọn Lưu ảnh. Trên máy tính, bấm chuột phải vào ảnh và chọn Lưu ảnh thành.</p>
+  <button class="btn" id="btnClose" type="button">Đóng</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var L = CONFIG.labels;
+
+  /* ---- Trang 1 ---- */
+  $("eyebrow").textContent = "Quà tặng " + CONFIG.occasion + " · Lớp " + CONFIG.className;
+
+  var order = GIRLS.map(function (g, i) { return { g: g, i: i }; })
+    .sort(function (a, b) { return a.g.name.localeCompare(b.g.name, "vi"); });
+  order.forEach(function (o) {
+    var opt = document.createElement("option");
+    opt.value = String(o.i);
+    opt.textContent = o.g.name;
+    $("nameSelect").appendChild(opt);
+  });
+
+  $("btnOpen").addEventListener("click", function () {
+    var v = $("nameSelect").value;
+    if (v === "") { $("hint").textContent = "Bạn hãy chọn tên của mình trước nhé."; return; }
+    $("hint").textContent = "";
+    showCert(Number(v));
+  });
+  $("nameSelect").addEventListener("change", function () { $("hint").textContent = ""; });
+
+  /* ---- Trang 2 ---- */
+  function initial(name) {
+    var parts = name.trim().split(/\s+/);
+    return (parts[parts.length - 1] || "?").charAt(0).toUpperCase();
+  }
+
+  function showCert(i) {
+    var g = GIRLS[i];
+    var nick = g.nickname || g.name;
+
+    $("cOffice").textContent = CONFIG.office;
+    $("cTitle").textContent = CONFIG.title;
+    $("cSub").textContent = "(" + CONFIG.subtitle + " " + CONFIG.occasion + ")";
+
+    $("lName").textContent = L.name;         $("vName").textContent = g.name;
+    $("lBirthday").textContent = L.birthday; $("vBirthday").textContent = g.birthday;
+    $("lRole").textContent = L.role;         $("vRole").textContent = g.role;
+    $("lTrait").textContent = L.trait;       $("vTrait").textContent = g.trait;
+    $("lValidity").textContent = L.validity; $("vValidity").textContent = g.validity || CONFIG.validity;
+
+    $("cTo").textContent = "Thân gửi: " + nick;
+    $("cWish").textContent = (g.wish || CONFIG.wish).split("{name}").join(nick);
+    $("cFrom").innerHTML = "From: <b></b>";
+    $("cFrom").querySelector("b").textContent = CONFIG.from;
+    var num = String(i + 1); if (num.length < 2) num = "0" + num;
+    $("cId").textContent = "Mã số: " + (g.id || (CONFIG.idPrefix + "-" + num));
+
+    var slot = $("photoSlot");
+    slot.innerHTML = "";
+    function fallback() {
+      slot.innerHTML = "";
+      var d = document.createElement("div");
+      d.className = "photo-fallback";
+      d.textContent = initial(g.name);
+      slot.appendChild(d);
+    }
+    if (g.photo) {
+      var img = new Image();
+      img.className = "photo";
+      img.alt = "Ảnh của " + g.name;
+      img.onerror = fallback;
+      img.src = g.photo;
+      slot.appendChild(img);
+    } else {
+      fallback();
+    }
+
+    $("page1").hidden = true;
+    $("page2").hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  $("btnBack").addEventListener("click", function () {
+    $("page2").hidden = true;
+    $("page1").hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  /* ---- Nút chụp ---- */
+  var shotBtn = $("btnShot");
+  shotBtn.addEventListener("click", function () {
+    if (!window.html2canvas) {
+      $("shotImg").hidden = true;
+      $("shotNote").textContent = "Không tạo được ảnh tự động. Bạn hãy chụp màn hình thiết bị để lưu chứng nhận nhé.";
+      $("modal").hidden = false;
+      return;
+    }
+    shotBtn.disabled = true;
+    shotBtn.textContent = "Đang chụp…";
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function () {
+      return window.html2canvas($("cert"), { scale: 3, useCORS: true, backgroundColor: null });
+    }).then(function (canvas) {
+      $("shotImg").hidden = false;
+      $("shotImg").src = canvas.toDataURL("image/png");
+      $("shotNote").textContent = "Nhấn giữ vào ảnh rồi chọn Lưu ảnh. Trên máy tính, bấm chuột phải vào ảnh và chọn Lưu ảnh thành.";
+      $("modal").hidden = false;
+    }).catch(function () {
+      $("shotImg").hidden = true;
+      $("shotNote").textContent = "Không tạo được ảnh tự động. Bạn hãy chụp màn hình thiết bị để lưu chứng nhận nhé.";
+      $("modal").hidden = false;
+    }).then(function () {
+      shotBtn.disabled = false;
+      shotBtn.textContent = "Chụp chứng nhận";
+    });
+  });
+  $("btnClose").addEventListener("click", function () { $("modal").hidden = true; });
+})();
+</script>
+
+</body></html>
