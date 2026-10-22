@@ -5,54 +5,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Be+Vietnam+Pro:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap">
 
-<!--
-=====================================================================
-  KHU VỰC CHỈNH SỬA  (chỉ cần sửa phần này, không cần đụng code bên dưới)
-=====================================================================
-  1) CONFIG  : nội dung chung cho mọi chứng nhận
-  2) GIRLS   : danh sách từng bạn nữ (thêm/xóa/sửa tùy ý)
-     - name     : họ và tên (hiện trong danh sách chọn và trên chứng nhận)
-     - nickname : tên gọi trong lời chúc (bỏ trống thì dùng name)
-     - birthday : ngày xuất xưởng (ngày tháng năm sinh)
-     - role     : chức vụ
-     - trait    : đặc điểm
-     - photo    : đường dẫn ảnh, ví dụ "anh/linh.jpg" (bỏ trống thì hiện ảnh chữ cái đầu)
-     - wish     : (tuỳ chọn) lời chúc riêng, dùng {name} để chèn tên; bỏ trống thì dùng CONFIG.wish
-     - validity, id : (tuỳ chọn) ghi đè thời hạn / mã số của riêng bạn đó
-  Ba bạn bên dưới chỉ là dữ liệu MẪU để xem thử.
-=====================================================================
--->
-<script>
-const CONFIG = {
-  occasion: "20/10",                           // ngày lễ, hiện ở phụ đề và lời chúc
-  className: "12/1",                           // tên lớp, hiện ở trang chọn tên
-  office: "TRUNG TÂM KIỂM ĐỊNH NHAN SẮC & DỄ THƯƠNG",  // dòng trên cùng của chứng nhận
-  title: "CHỨNG CHỈ NHÂN VẬT ĐẶC BIỆT",             // tiêu đề chứng nhận
-  subtitle: "Phiên bản độc nhất",              // phụ đề (tự thêm ngày lễ phía sau)
-  validity: "Vĩnh viễn",                       // thời hạn
-  idPrefix: "2010-cute",                       // mã số = idPrefix + số thứ tự (vd 2010-cute-01)
-  from: "Tập thể con trai 12/1",               // người gửi, dòng cuối chứng nhận
-  wish: "Chúc {name} có một ngày 20/10 thật hạnh phúc, ngọt ngào và đong đầy yêu thương! Mong những kỷ niệm ngọt ngào của lớp 12/1 luôn là điểm tựa vững chắc trên hành trang trưởng thành.",
-  labels: {                                    // tên các dòng thông tin
-    name: "Họ và tên",
-    birthday: "Ngày đáp xuống Trái Đất",
-    role: "Chức vụ",
-    trait: "Đặc điểm",
-    validity: "Thời hạn"
-  }
-};
-
-const GIRLS = [
-  { name: "Nguyễn Hà Lâm Thư", nickname: "Thư có nhiều tâm tư", birthday: "16/05/2009", role: "Giám đốc Ngủ gật", trait: "Học giỏi và hay ngủ", photo: "" },
-  { name: "Văn Thị Như Ý", nickname: "Mercedes", birthday: "27/01/2009", role: "Boss tối cao( lớp trưởng)", trait: "Thần thái thủ lĩnh", photo: "" },
-  { name: "Nguyễn Lê Uyển Nhi", nickname: "Nhi Nguyễn", birthday: "05/06/2009", role: "Bứ thi quyền lực", trait: "Dịu dàng, nói là làm", photo: "" }
-];
-</script>
-
-<style>
-/* Bố cục: một cột giữa màn hình. Trang 1 là thẻ chọn tên, trang 2 là chứng nhận dọc (tỉ lệ giấy 6x9) kèm hai nút. */
+<style id="appStyle">
+/* Bố cục: trang công khai là một cột giữa màn hình (thẻ chọn tên, rồi chứng nhận dọc).
+   Trang quản trị chỉ hiện với chủ trang: thanh công cụ dính trên cùng, bên dưới là hai khung nội dung chung và danh sách. */
 :root {
-  /* giao diện trang (đổi theo sáng/tối) */
   --bg: #fdf1f5;
   --fg: #3a2a37;
   --muted: #86697c;
@@ -85,6 +41,7 @@ const GIRLS = [
   --surface: #2b2030; --line: #4a3650; color-scheme: dark;
 }
 
+[hidden] { display: none !important; }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
 body {
@@ -101,6 +58,9 @@ body {
     radial-gradient(circle at 92% 92%, color-mix(in srgb, #7a8fd6 18%, transparent) 0, transparent 38%);
   background-attachment: fixed;
 }
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg);
+}
 .wrap { width: min(100%, 420px); margin-inline: auto; display: flex; flex-direction: column; gap: 18px; }
 
 /* ---------- Trang 1: chọn tên ---------- */
@@ -112,82 +72,62 @@ body {
   display: flex; flex-direction: column; gap: 14px;
   text-align: center;
 }
-.eyebrow {
-  font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--accent); font-weight: 600; margin: 0;
-}
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0; }
 .pick h1 {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(28px, 8vw, 36px); line-height: 1.1; margin: 0;
-  text-wrap: balance;
+  font-size: clamp(28px, 8vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance;
 }
 .pick p { margin: 0; color: var(--muted); }
 .pick label { font-size: 13px; font-weight: 600; text-align: left; margin-top: 6px; }
-select, .btn {
-  font: inherit; width: 100%; border-radius: 14px; min-height: 48px;
-}
-select {
-  border: 1.5px solid var(--line); background: var(--bg); color: var(--fg);
-  padding: 0 14px;
-}
+select, .btn { font: inherit; width: 100%; border-radius: 14px; min-height: 48px; }
+select { border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 14px; }
 .btn {
   border: 0; cursor: pointer; font-weight: 600; font-size: 15px;
-  background: var(--accent); color: var(--accent-ink);
-  padding: 0 18px;
+  background: var(--accent); color: var(--accent-ink); padding: 0 18px;
   transition: transform .15s ease, filter .15s ease;
 }
 .btn:hover { filter: brightness(1.05); }
 .btn:active { transform: scale(.98); }
 .btn.ghost { background: transparent; color: var(--fg); border: 1.5px solid var(--line); }
-.btn:disabled { opacity: .6; cursor: progress; }
-:is(select, .btn, button):focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn.sm { width: auto; min-height: 42px; font-size: 14px; padding: 0 16px; }
+:is(select, .btn, button, input, textarea, summary):focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+.pick form { display: flex; flex-direction: column; gap: 12px; }
+.pick .in { text-align: left; }
+.matches { display: grid; gap: 8px; }
+.matches:empty { display: none; }
 .hint { min-height: 1.4em; font-size: 13px; color: var(--accent); margin: -4px 0 0; text-align: left; }
 .fine { font-size: 12.5px; }
 
 /* ---------- Trang 2: chứng nhận ---------- */
 .cert {
-  position: relative;
-  width: 100%;
-  padding: 26px 24px 22px;
+  position: relative; width: 100%; padding: 26px 24px 22px;
   background: linear-gradient(165deg, var(--c-paper-a) 0%, var(--c-paper-b) 100%);
-  color: var(--c-ink);
-  border-radius: 22px;
-  overflow: hidden;
+  color: var(--c-ink); border-radius: 22px; overflow: hidden;
   box-shadow: 0 10px 30px color-mix(in srgb, #7a4a63 22%, transparent);
 }
-.cert::before {
-  content: ""; position: absolute; inset: 8px;
-  border: 2px dashed var(--c-pink); border-radius: 16px; pointer-events: none;
-}
+.cert::before { content: ""; position: absolute; inset: 8px; border: 2px dashed var(--c-pink); border-radius: 16px; pointer-events: none; }
 .cert-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.office {
-  margin: 0; font-size: 10.5px; letter-spacing: .12em; font-weight: 600; text-align: center;
-  color: var(--c-pink);
-}
+.office { margin: 0; font-size: 10.5px; letter-spacing: .12em; font-weight: 600; text-align: center; color: var(--c-pink); }
 .cert-title {
   margin: 0; font-family: var(--font-display); font-weight: 800; color: var(--c-blue);
   font-size: clamp(22px, 6.6vw, 28px); line-height: 1.1; text-align: center; text-wrap: balance;
 }
 .cert-sub { margin: -6px 0 0; font-size: 13px; color: var(--c-muted); text-align: center; }
-
 .photo-frame {
   position: relative; width: 52%; max-width: 190px; aspect-ratio: 4 / 5;
-  border-radius: 16px; padding: 5px;
-  background: linear-gradient(140deg, var(--c-pink-soft), #cdd8ff);
-  margin-top: 4px;
+  border-radius: 16px; padding: 5px; background: linear-gradient(140deg, var(--c-pink-soft), #cdd8ff); margin-top: 4px;
 }
 .photo, .photo-fallback { width: 100%; height: 100%; border-radius: 12px; display: block; object-fit: cover; }
 .photo-fallback {
-  display: grid; place-items: center;
-  background: linear-gradient(160deg, #ffe3ee, #dfe7ff);
+  display: grid; place-items: center; background: linear-gradient(160deg, #ffe3ee, #dfe7ff);
   font-family: var(--font-display); font-weight: 800; font-size: 64px; color: var(--c-pink);
 }
 .stamp {
   position: absolute; right: -26px; bottom: -14px; width: 66px; height: 66px; border-radius: 50%;
   display: grid; place-items: center; text-align: center;
   font-family: var(--font-display); font-weight: 800; font-size: 10px; line-height: 1.15; letter-spacing: .04em;
-  color: var(--c-pink); background: rgba(255,255,255,.92);
-  border: 2px dashed var(--c-pink); transform: rotate(-14deg);
+  color: var(--c-pink); background: rgba(255,255,255,.92); border: 2px dashed var(--c-pink); transform: rotate(-14deg);
 }
 .rows { width: 100%; margin: 14px 0 0; display: grid; gap: 9px; }
 .row { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: baseline; font-size: 13.5px; }
@@ -213,6 +153,68 @@ select {
 .modal p { margin: 0; color: #fff; text-align: center; font-size: 14px; max-width: 360px; }
 .modal .btn { width: auto; min-width: 140px; background: #fff; color: #3a2a37; }
 
+/* ---------- Quản trị (chỉ chủ trang thấy) ---------- */
+.fab {
+  position: fixed; z-index: 20; border: 0; cursor: pointer; font: inherit; font-weight: 600; font-size: 14px;
+  right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  min-height: 44px; padding: 0 18px; border-radius: 999px;
+  background: var(--fg); color: var(--bg); box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+.adminwrap { width: min(100%, 780px); margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+.abar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 12px 14px;
+}
+.atitle { font-family: var(--font-display); font-weight: 800; font-size: 20px; margin: 0; line-height: 1.2; }
+.astatus { margin: 0; font-size: 12.5px; color: var(--muted); min-height: 1.4em; }
+.astatus.warn { color: var(--accent); font-weight: 600; }
+.abtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.panel {
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 18px;
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+}
+.panel h2 { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin: 0; }
+.note { margin: 0; font-size: 13px; color: var(--muted); }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fgrid .full { grid-column: 1 / -1; }
+.fld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fld > span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.in {
+  font: inherit; width: 100%; min-height: 44px; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--bg); color: var(--fg); padding: 0 12px;
+}
+textarea.in { padding: 10px 12px; min-height: 92px; resize: vertical; line-height: 1.45; }
+.sub { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar .in { flex: 1 1 180px; width: auto; }
+.people { display: flex; flex-direction: column; gap: 12px; }
+.person {
+  border: 1.5px solid var(--line); border-radius: 16px; padding: 14px; background: var(--bg);
+  display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; align-items: start;
+}
+.thumb {
+  width: 84px; aspect-ratio: 4 / 5; border-radius: 12px; border: 1.5px dashed var(--line); padding: 0; overflow: hidden; cursor: pointer;
+  background: var(--surface); color: var(--accent); font: 800 30px var(--font-display); display: grid; place-items: center;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pcol { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.pbody { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pname { font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.pbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.mini {
+  min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--line); background: transparent;
+  color: var(--fg); font: inherit; font-size: 13px; cursor: pointer;
+}
+.mini.danger { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+details > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+details[open] > summary { margin-bottom: 8px; }
+.empty { margin: 0; padding: 18px; text-align: center; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 14px; }
+
+@media (max-width: 560px) {
+  .fgrid { grid-template-columns: 1fr; }
+  .person { grid-template-columns: 1fr; }
+}
 @media (max-width: 380px) {
   .row { grid-template-columns: 1fr; gap: 0; }
   .cert { padding-inline: 18px; }
@@ -220,55 +222,102 @@ select {
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
 </style>
 
-<main class="wrap">
-  <!-- Trang 1 -->
-  <section id="page1" class="pick" aria-labelledby="h1">
-    <p class="eyebrow" id="eyebrow"></p>
-    <h1 id="h1">Chứng nhận dành riêng cho bạn</h1>
-    <p>Chọn tên của bạn trong danh sách để nhận chứng nhận.</p>
-    <label for="nameSelect">Tên của bạn</label>
-    <select id="nameSelect"><option value="">-- Chọn tên --</option></select>
-    <p class="hint" id="hint" role="status"></p>
-    <button class="btn" id="btnOpen" type="button">Mở chứng nhận</button>
-    <p class="fine">Mỗi bạn nhận một chứng nhận riêng, có hiệu lực vĩnh viễn.</p>
-  </section>
+<div id="publicView">
+  <main class="wrap">
+    <!-- Trang 1 -->
+    <section id="page1" class="pick" aria-labelledby="h1">
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 id="h1">Chứng nhận dành riêng cho bạn</h1>
+      <p>Nhập họ và tên của bạn để tìm chứng nhận của mình.</p>
+      <form id="findForm" autocomplete="off">
+        <label for="nameInput">Họ và tên của bạn</label>
+        <input class="in" id="nameInput" type="text" placeholder="Ví dụ: Nguyễn Minh Anh" autocapitalize="words" enterkeyhint="search">
+        <p class="hint" id="hint" role="status"></p>
+        <div class="matches" id="matches"></div>
+        <button class="btn" id="btnOpen" type="submit">Tìm chứng nhận</button>
+      </form>
+      <p class="fine">Mỗi bạn nhận một chứng nhận riêng, có hiệu lực vĩnh viễn.</p>
+    </section>
 
-  <!-- Trang 2 -->
-  <section id="page2" hidden>
-    <div class="wrap">
-      <div class="cert" id="cert">
-        <div class="cert-inner">
-          <p class="office" id="cOffice"></p>
-          <h2 class="cert-title" id="cTitle"></h2>
-          <p class="cert-sub" id="cSub"></p>
+    <!-- Trang 2 -->
+    <section id="page2" hidden>
+      <div class="wrap">
+        <div class="cert" id="cert">
+          <div class="cert-inner">
+            <p class="office" id="cOffice"></p>
+            <h2 class="cert-title" id="cTitle"></h2>
+            <p class="cert-sub" id="cSub"></p>
 
-          <div class="photo-frame">
-            <div id="photoSlot" style="width:100%;height:100%"></div>
-            <div class="stamp">ĐÃ KIỂM ĐỊNH<br>100%</div>
+            <div class="photo-frame">
+              <div id="photoSlot" style="width:100%;height:100%"></div>
+              <div class="stamp">ĐÃ KIỂM ĐỊNH<br>100%</div>
+            </div>
+
+            <dl class="rows">
+              <div class="row"><dt id="lName"></dt><dd id="vName"></dd></div>
+              <div class="row"><dt id="lBirthday"></dt><dd id="vBirthday"></dd></div>
+              <div class="row"><dt id="lRole"></dt><dd id="vRole"></dd></div>
+              <div class="row"><dt id="lTrait"></dt><dd id="vTrait"></dd></div>
+              <div class="row"><dt id="lValidity"></dt><dd id="vValidity"></dd></div>
+            </dl>
+
+            <div class="divider"></div>
+            <p class="to" id="cTo"></p>
+            <p class="wish" id="cWish"></p>
+            <div class="foot"><span id="cFrom"></span><span id="cId"></span></div>
           </div>
+        </div>
 
-          <dl class="rows">
-            <div class="row"><dt id="lName"></dt><dd id="vName"></dd></div>
-            <div class="row"><dt id="lBirthday"></dt><dd id="vBirthday"></dd></div>
-            <div class="row"><dt id="lRole"></dt><dd id="vRole"></dd></div>
-            <div class="row"><dt id="lTrait"></dt><dd id="vTrait"></dd></div>
-            <div class="row"><dt id="lValidity"></dt><dd id="vValidity"></dd></div>
-          </dl>
-
-          <div class="divider"></div>
-          <p class="to" id="cTo"></p>
-          <p class="wish" id="cWish"></p>
-          <div class="foot"><span id="cFrom"></span><span id="cId"></span></div>
+        <div class="actions">
+          <button class="btn" id="btnShot" type="button">Chụp chứng nhận</button>
+          <button class="btn ghost" id="btnBack" type="button">Chọn lại tên</button>
         </div>
       </div>
+    </section>
+  </main>
+</div>
 
-      <div class="actions">
-        <button class="btn" id="btnShot" type="button">Chụp chứng nhận</button>
-        <button class="btn ghost" id="btnBack" type="button">Chọn lại tên</button>
+<div id="adminView" hidden>
+  <div class="adminwrap">
+    <header class="abar">
+      <div>
+        <h1 class="atitle">Quản trị chứng nhận</h1>
+        <p class="astatus" id="saveMsg" role="status">Chưa có thay đổi.</p>
       </div>
-    </div>
-  </section>
-</main>
+      <div class="abtns">
+        <button class="btn ghost sm" id="btnPublicView" type="button">Xem trang các bạn nữ</button>
+        <button class="btn sm" id="btnSave" type="button" disabled>Lưu và xuất bản</button>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="hCfg">
+      <h2 id="hCfg">Nội dung chung</h2>
+      <p class="note">Áp dụng cho mọi chứng nhận. Sửa xong bấm "Lưu và xuất bản" để các bạn nữ thấy bản mới, link giữ nguyên.</p>
+      <div class="fgrid" id="cfgForm"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="hPeople">
+      <h2 id="hPeople">Danh sách bạn nữ <span id="count"></span></h2>
+      <div class="toolbar">
+        <input class="in" id="search" type="search" placeholder="Tìm theo tên" aria-label="Tìm theo tên">
+        <button class="btn sm" id="btnAdd" type="button">Thêm bạn</button>
+        <button class="btn ghost sm" id="btnClearSamples" type="button" hidden>Xóa các bạn mẫu</button>
+      </div>
+      <details>
+        <summary>Thêm nhanh nhiều bạn cùng lúc</summary>
+        <div class="fld">
+          <span>Mỗi dòng một bạn: Họ và tên | Ngày sinh | Chức vụ | Đặc điểm (dán từ Excel cũng được)</span>
+          <textarea class="in" id="bulk" placeholder="Nguyễn Thị An | 05/04/2009 | Trưởng ban văn nghệ | Hát hay nhất lớp"></textarea>
+        </div>
+        <p style="margin:10px 0 0"><button class="btn ghost sm" id="btnBulk" type="button">Thêm vào danh sách</button></p>
+      </details>
+      <div class="people" id="people"></div>
+    </section>
+  </div>
+</div>
+
+<button class="fab" id="adminFab" type="button" hidden>Quản trị</button>
+<input type="file" id="fileInput" accept="image/*" hidden>
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="Ảnh chứng nhận">
   <img id="shotImg" alt="Ảnh chứng nhận">
@@ -276,119 +325,497 @@ select {
   <button class="btn" id="btnClose" type="button">Đóng</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
+<script type="application/json" id="appData">{"config": {"occasion": "20/10", "className": "12/2", "office": "CỤC QUẢN LÝ NHAN SẮC & DỄ THƯƠNG", "title": "CHỨNG NHẬN SỰ ĐÁNG YÊU", "subtitle": "Phiên bản đặc biệt", "validity": "Vĩnh viễn", "idPrefix": "2010-cute", "from": "Tập thể con trai 12/2", "wish": "Chúc {name} có một ngày 20/10 thật hạnh phúc, ngọt ngào và đong đầy yêu thương! Mong những kỷ niệm ngọt ngào của lớp 12/2 luôn là điểm tựa vững chắc trên hành trang trưởng thành.", "labels": {"name": "Họ và tên", "birthday": "Ngày đáp xuống Trái Đất", "role": "Chức vụ", "trait": "Đặc điểm", "validity": "Thời hạn"}}, "girls": [{"name": "Nguyễn Minh Anh", "nickname": "Minh Anh", "birthday": "12/03/2009", "role": "Chủ tịch hội cười không ngừng", "trait": "Học giỏi, hay quên áo mưa", "photo": "", "sample": true}, {"name": "Trần Khánh Linh", "nickname": "Khánh Linh", "birthday": "01/06/2009", "role": "Trưởng ban góc học tập xinh xắn", "trait": "Thần đồn của lớp", "photo": "", "sample": true}, {"name": "Lê Hoàng Lan", "nickname": "Hoàng Lan", "birthday": "25/09/2009", "role": "Phó chủ tịch hội ăn vặt", "trait": "Dịu dàng, nói là làm", "photo": "", "sample": true}]}</script>
+<script id="appScript">
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var L = CONFIG.labels;
 
-  /* ---- Trang 1 ---- */
-  $("eyebrow").textContent = "Quà tặng " + CONFIG.occasion + " · Lớp " + CONFIG.className;
+  /* ---------- Dữ liệu ---------- */
+  var DATA = JSON.parse($("appData").textContent);
+  var C = DATA.config;
+  var G = DATA.girls;
 
-  var order = GIRLS.map(function (g, i) { return { g: g, i: i }; })
-    .sort(function (a, b) { return a.g.name.localeCompare(b.g.name, "vi"); });
-  order.forEach(function (o) {
-    var opt = document.createElement("option");
-    opt.value = String(o.i);
-    opt.textContent = o.g.name;
-    $("nameSelect").appendChild(opt);
-  });
+  /* ---------- Chụp lại khung trang gốc (dùng khi xuất bản) ---------- */
+  var SHELL = ["publicView", "adminView", "adminFab", "fileInput", "modal"].map(function (id) { return $(id).outerHTML; }).join("\n\n");
+  var STYLE = $("appStyle").textContent;
+  var SCRIPT = $("appScript").textContent;
+  var HEAD = '<title>Chứng nhận sự đáng yêu</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Be+Vietnam+Pro:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap">\n';
+  var RESET = ':root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}';
 
-  $("btnOpen").addEventListener("click", function () {
-    var v = $("nameSelect").value;
-    if (v === "") { $("hint").textContent = "Bạn hãy chọn tên của mình trước nhé."; return; }
-    $("hint").textContent = "";
-    showCert(Number(v));
-  });
-  $("nameSelect").addEventListener("change", function () { $("hint").textContent = ""; });
-
-  /* ---- Trang 2 ---- */
-  function initial(name) {
-    var parts = name.trim().split(/\s+/);
-    return (parts[parts.length - 1] || "?").charAt(0).toUpperCase();
+  function buildDoc() {
+    var json = JSON.stringify(DATA).split("<").join("\\u003c");
+    return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>" + RESET + "</style></head><body>" +
+      HEAD +
+      "<style id=\"appStyle\">" + STYLE + "</style>\n" +
+      SHELL + "\n" +
+      "<script type=\"application/json\" id=\"appData\">" + json + "<\/script>\n" +
+      "<script id=\"appScript\">" + SCRIPT + "<\/script>\n" +
+      "</body></html>";
   }
 
+  /* ---------- Trang công khai ---------- */
+  function norm(s) {
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u0111\u0110]/g, "d")
+      .toLowerCase().replace(/\s+/g, " ").trim();
+  }
+  function findMatches(q) {
+    var nq = norm(q);
+    if (nq.length < 2) return [];
+    var exact = [], part = [];
+    G.forEach(function (g, i) {
+      var n = norm(g.name), k = norm(g.nickname);
+      if (n === nq || (k && k === nq)) exact.push(i);
+      else if (nq.length >= 3 && (n.indexOf(nq) >= 0 || (k && k.indexOf(nq) >= 0))) part.push(i);
+    });
+    return exact.length ? exact : part;
+  }
+  function renderPublic() {
+    $("eyebrow").textContent = "Quà tặng " + C.occasion + " · Lớp " + C.className;
+  }
+  var current = -1;
+  function clearMatches() { $("matches").innerHTML = ""; }
+  $("findForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var q = $("nameInput").value, hint = $("hint");
+    clearMatches(); hint.textContent = "";
+    if (norm(q).length < 2) { hint.textContent = "Bạn hãy nhập họ và tên của mình nhé."; return; }
+    var m = findMatches(q);
+    if (!m.length) { hint.textContent = "Chưa tìm thấy tên này. Hãy nhập đúng họ và tên đầy đủ như trong lớp nhé."; return; }
+    if (m.length === 1) { showCert(m[0]); return; }
+    if (m.length > 6) { hint.textContent = "Có nhiều bạn trùng. Hãy nhập đủ họ và tên của bạn nhé."; return; }
+    hint.textContent = "Chọn đúng tên của bạn:";
+    m.forEach(function (i) {
+      var b = el("button", "btn ghost", G[i].name);
+      b.type = "button";
+      b.addEventListener("click", function () { showCert(i); });
+      $("matches").appendChild(b);
+    });
+  });
+  $("nameInput").addEventListener("input", function () { $("hint").textContent = ""; clearMatches(); });
+
+  function initial(name) {
+    var parts = String(name).trim().split(/\s+/);
+    return (parts[parts.length - 1] || "?").charAt(0).toUpperCase();
+  }
   function showCert(i) {
-    var g = GIRLS[i];
-    var nick = g.nickname || g.name;
-
-    $("cOffice").textContent = CONFIG.office;
-    $("cTitle").textContent = CONFIG.title;
-    $("cSub").textContent = "(" + CONFIG.subtitle + " " + CONFIG.occasion + ")";
-
+    current = i;
+    var g = G[i], L = C.labels, nick = g.nickname || g.name;
+    $("cOffice").textContent = C.office;
+    $("cTitle").textContent = C.title;
+    $("cSub").textContent = "(" + C.subtitle + " " + C.occasion + ")";
     $("lName").textContent = L.name;         $("vName").textContent = g.name;
     $("lBirthday").textContent = L.birthday; $("vBirthday").textContent = g.birthday;
     $("lRole").textContent = L.role;         $("vRole").textContent = g.role;
     $("lTrait").textContent = L.trait;       $("vTrait").textContent = g.trait;
-    $("lValidity").textContent = L.validity; $("vValidity").textContent = g.validity || CONFIG.validity;
-
+    $("lValidity").textContent = L.validity; $("vValidity").textContent = g.validity || C.validity;
     $("cTo").textContent = "Thân gửi: " + nick;
-    $("cWish").textContent = (g.wish || CONFIG.wish).split("{name}").join(nick);
+    $("cWish").textContent = wishFor(g);
     $("cFrom").innerHTML = "From: <b></b>";
-    $("cFrom").querySelector("b").textContent = CONFIG.from;
-    var num = String(i + 1); if (num.length < 2) num = "0" + num;
-    $("cId").textContent = "Mã số: " + (g.id || (CONFIG.idPrefix + "-" + num));
+    $("cFrom").querySelector("b").textContent = C.from;
+    $("cId").textContent = "Mã số: " + idFor(i);
 
     var slot = $("photoSlot");
     slot.innerHTML = "";
     function fallback() {
       slot.innerHTML = "";
-      var d = document.createElement("div");
-      d.className = "photo-fallback";
-      d.textContent = initial(g.name);
+      var d = document.createElement("div"); d.className = "photo-fallback"; d.textContent = initial(g.name);
       slot.appendChild(d);
     }
     if (g.photo) {
-      var img = new Image();
-      img.className = "photo";
-      img.alt = "Ảnh của " + g.name;
-      img.onerror = fallback;
-      img.src = g.photo;
-      slot.appendChild(img);
-    } else {
-      fallback();
-    }
-
-    $("page1").hidden = true;
-    $("page2").hidden = false;
-    window.scrollTo(0, 0);
+      var img = new Image(); img.className = "photo"; img.alt = "Ảnh của " + g.name;
+      img.onerror = fallback; img.src = g.photo; slot.appendChild(img);
+    } else { fallback(); }
+    $("page1").hidden = true; $("page2").hidden = false; window.scrollTo(0, 0);
   }
-
+  function wishFor(g) { return (g.wish || C.wish).split("{name}").join(g.nickname || g.name); }
+  function idFor(i) {
+    var num = String(i + 1); if (num.length < 2) num = "0" + num;
+    return G[i].id || (C.idPrefix + "-" + num);
+  }
   $("btnBack").addEventListener("click", function () {
-    $("page2").hidden = true;
-    $("page1").hidden = false;
+    $("page2").hidden = true; $("page1").hidden = false;
+    $("nameInput").value = ""; $("hint").textContent = ""; clearMatches();
     window.scrollTo(0, 0);
   });
 
-  /* ---- Nút chụp ---- */
-  var shotBtn = $("btnShot");
-  shotBtn.addEventListener("click", function () {
-    if (!window.html2canvas) {
-      $("shotImg").hidden = true;
-      $("shotNote").textContent = "Không tạo được ảnh tự động. Bạn hãy chụp màn hình thiết bị để lưu chứng nhận nhé.";
-      $("modal").hidden = false;
-      return;
+  /* ---------- Nút chụp: tự vẽ chứng nhận lên canvas ---------- */
+  function wrap(ctx, text, maxW) {
+    var words = String(text || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
+    words.forEach(function (w) {
+      var t = cur ? cur + " " + w : w;
+      if (ctx.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+    });
+    if (cur) lines.push(cur);
+    return lines.length ? lines : [""];
+  }
+  function rrect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+  function loadImg(src) {
+    return new Promise(function (res) {
+      if (!src) { res(null); return; }
+      var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { res(null); }; im.src = src;
+    });
+  }
+  var F = {
+    display: '"Baloo 2","Be Vietnam Pro",system-ui,sans-serif',
+    body: '"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif',
+    script: '"Dancing Script","Brush Script MT",cursive'
+  };
+  var PINK = "#e8689a", BLUE = "#4a5fb5", INK = "#3a2f4a", MUTED = "#8c7f9c";
+
+  function drawCert(ctx, W, H, g, i, photo) {
+    var PAD = 84, cx = W / 2, innerW = W - PAD * 2, y;
+    ctx.clearRect(0, 0, W, H);
+    // nền
+    var bg = ctx.createLinearGradient(0, 0, W * 0.6, H);
+    bg.addColorStop(0, "#ffffff"); bg.addColorStop(1, "#eaf0ff");
+    rrect(ctx, 0, 0, W, H, 64); ctx.fillStyle = bg; ctx.fill();
+    // viền nét đứt
+    ctx.save(); ctx.setLineDash([18, 13]); ctx.lineWidth = 5; ctx.strokeStyle = PINK;
+    rrect(ctx, 26, 26, W - 52, H - 52, 46); ctx.stroke(); ctx.restore();
+
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    y = 138;
+    // dòng cơ quan
+    ctx.fillStyle = PINK; ctx.font = "600 27px " + F.body;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "3px";
+    wrap(ctx, C.office, innerW).forEach(function (ln) { ctx.fillText(ln, cx, y); y += 38; });
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+    // tiêu đề
+    y += 38;
+    ctx.fillStyle = BLUE; ctx.font = "800 78px " + F.display;
+    wrap(ctx, C.title, innerW).forEach(function (ln) { ctx.fillText(ln, cx, y); y += 82; });
+    // phụ đề
+    y += 4;
+    ctx.fillStyle = MUTED; ctx.font = "400 32px " + F.body;
+    ctx.fillText("(" + C.subtitle + " " + C.occasion + ")", cx, y);
+    // khung ảnh
+    var fw = 440, fh = 550, fx = cx - fw / 2, fy = y + 46;
+    var fg = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
+    fg.addColorStop(0, "#fbd3e2"); fg.addColorStop(1, "#cdd8ff");
+    rrect(ctx, fx, fy, fw, fh, 40); ctx.fillStyle = fg; ctx.fill();
+    var ix = fx + 14, iy = fy + 14, iw = fw - 28, ih = fh - 28;
+    ctx.save(); rrect(ctx, ix, iy, iw, ih, 30); ctx.clip();
+    if (photo) {
+      var s = Math.max(iw / photo.width, ih / photo.height), dw = photo.width * s, dh = photo.height * s;
+      ctx.drawImage(photo, ix + (iw - dw) / 2, iy + (ih - dh) / 2, dw, dh);
+    } else {
+      var pg = ctx.createLinearGradient(ix, iy, ix + iw, iy + ih);
+      pg.addColorStop(0, "#ffe3ee"); pg.addColorStop(1, "#dfe7ff");
+      ctx.fillStyle = pg; ctx.fillRect(ix, iy, iw, ih);
+      ctx.fillStyle = PINK; ctx.font = "800 190px " + F.display; ctx.textBaseline = "middle";
+      ctx.fillText(initial(g.name), cx, iy + ih / 2 + 8); ctx.textBaseline = "alphabetic";
     }
-    shotBtn.disabled = true;
-    shotBtn.textContent = "Đang chụp…";
-    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-    ready.then(function () {
-      return window.html2canvas($("cert"), { scale: 3, useCORS: true, backgroundColor: null });
-    }).then(function (canvas) {
-      $("shotImg").hidden = false;
-      $("shotImg").src = canvas.toDataURL("image/png");
-      $("shotNote").textContent = "Nhấn giữ vào ảnh rồi chọn Lưu ảnh. Trên máy tính, bấm chuột phải vào ảnh và chọn Lưu ảnh thành.";
-      $("modal").hidden = false;
-    }).catch(function () {
-      $("shotImg").hidden = true;
-      $("shotNote").textContent = "Không tạo được ảnh tự động. Bạn hãy chụp màn hình thiết bị để lưu chứng nhận nhé.";
-      $("modal").hidden = false;
-    }).then(function () {
-      shotBtn.disabled = false;
-      shotBtn.textContent = "Chụp chứng nhận";
+    ctx.restore();
+    // con dấu
+    ctx.save(); ctx.translate(fx + fw - 6, fy + fh - 20); ctx.rotate(-14 * Math.PI / 180);
+    ctx.beginPath(); ctx.arc(0, 0, 92, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.94)"; ctx.fill();
+    ctx.setLineDash([12, 9]); ctx.lineWidth = 4; ctx.strokeStyle = PINK; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = PINK; ctx.textAlign = "center"; ctx.font = "800 24px " + F.display;
+    ctx.fillText("ĐÃ KIỂM ĐỊNH", 0, -6); ctx.font = "800 34px " + F.display; ctx.fillText("100%", 0, 32);
+    ctx.restore();
+    y = fy + fh + 68;
+    // các dòng thông tin
+    var L = C.labels, rows = [
+      [L.name, g.name], [L.birthday, g.birthday], [L.role, g.role], [L.trait, g.trait], [L.validity, g.validity || C.validity]
+    ];
+    var labW = 330, valX = PAD + labW + 20, valW = W - PAD - valX;
+    ctx.textAlign = "left";
+    rows.forEach(function (r) {
+      ctx.font = "600 28px " + F.body; var ll = wrap(ctx, r[0], labW);
+      ctx.font = "600 31px " + F.body; var vl = wrap(ctx, r[1], valW);
+      var n = Math.max(ll.length, vl.length), k;
+      ctx.fillStyle = PINK; ctx.font = "600 28px " + F.body;
+      for (k = 0; k < ll.length; k++) ctx.fillText(ll[k], PAD, y + k * 42);
+      ctx.fillStyle = INK; ctx.font = "600 31px " + F.body;
+      for (k = 0; k < vl.length; k++) ctx.fillText(vl[k], valX, y + k * 42);
+      y += n * 42 + 14;
+    });
+    // đường kẻ chấm
+    y += 8;
+    ctx.save(); ctx.setLineDash([2, 10]); ctx.lineCap = "round"; ctx.lineWidth = 4; ctx.strokeStyle = "#fbd3e2";
+    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke(); ctx.restore();
+    y += 62;
+    // gửi tới
+    ctx.fillStyle = BLUE; ctx.font = "700 40px " + F.display; ctx.textAlign = "left";
+    ctx.fillText("Thân gửi: " + (g.nickname || g.name), PAD, y);
+    y += 30;
+    // lời chúc
+    ctx.fillStyle = INK; ctx.font = "600 50px " + F.script; ctx.textAlign = "center";
+    wrap(ctx, wishFor(g), innerW).forEach(function (ln) { y += 64; ctx.fillText(ln, cx, y); });
+    y += 70;
+    // chân trang
+    ctx.font = "500 26px " + F.body; ctx.textAlign = "left"; ctx.fillStyle = MUTED;
+    ctx.fillText("From: ", PAD, y);
+    var fx2 = PAD + ctx.measureText("From: ").width;
+    ctx.fillStyle = BLUE; ctx.font = "600 26px " + F.body; ctx.fillText(C.from, fx2, y);
+    ctx.fillStyle = MUTED; ctx.font = "500 26px " + F.body; ctx.textAlign = "right";
+    ctx.fillText("Mã số: " + idFor(i), W - PAD, y);
+    return y + 76;
+  }
+  function renderCertImage(i) {
+    var g = G[i], W = 1080;
+    var fonts = document.fonts ? Promise.all([
+      document.fonts.load('800 40px "Baloo 2"'), document.fonts.load('600 28px "Be Vietnam Pro"'),
+      document.fonts.load('400 28px "Be Vietnam Pro"'), document.fonts.load('600 40px "Dancing Script"')
+    ]).catch(function () {}) : Promise.resolve();
+    return Promise.all([loadImg(g.photo), fonts]).then(function (r) {
+      var photo = r[0];
+      var probe = document.createElement("canvas"); probe.width = W; probe.height = 4000;
+      var need = drawCert(probe.getContext("2d"), W, 4000, g, i, photo);
+      var H = Math.max(1620, Math.ceil(need));
+      var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+      drawCert(cv.getContext("2d"), W, H, g, i, photo);
+      return cv.toDataURL("image/png");
+    });
+  }
+
+  var NOTE_OK = "Nhấn giữ vào ảnh rồi chọn Lưu ảnh. Trên máy tính, bấm chuột phải vào ảnh và chọn Lưu ảnh thành.";
+  var NOTE_FAIL = "Không tạo được ảnh tự động. Bạn hãy chụp màn hình thiết bị để lưu chứng nhận nhé.";
+  var shotBtn = $("btnShot");
+  function shotFail() { $("shotImg").hidden = true; $("shotNote").textContent = NOTE_FAIL; $("modal").hidden = false; }
+  shotBtn.addEventListener("click", function () {
+    if (current < 0) return;
+    shotBtn.disabled = true; shotBtn.textContent = "Đang chụp…";
+    renderCertImage(current).then(function (url) {
+      $("shotImg").hidden = false; $("shotImg").src = url;
+      $("shotNote").textContent = NOTE_OK; $("modal").hidden = false;
+    }).catch(shotFail).then(function () {
+      shotBtn.disabled = false; shotBtn.textContent = "Chụp chứng nhận";
     });
   });
   $("btnClose").addEventListener("click", function () { $("modal").hidden = true; });
+
+  /* ---------- Quản trị ---------- */
+  var CFG_FIELDS = [
+    ["occasion", "Ngày lễ (hiện ở phụ đề)", false, 0],
+    ["className", "Tên lớp", false, 0],
+    ["office", "Dòng trên cùng của chứng nhận", false, 1],
+    ["title", "Tiêu đề chứng nhận", false, 1],
+    ["subtitle", "Phụ đề (tự thêm ngày lễ phía sau)", false, 0],
+    ["validity", "Thời hạn", false, 0],
+    ["idPrefix", "Đầu mã số (vd 2010-cute)", false, 0],
+    ["from", "Người gửi (dòng cuối)", false, 0],
+    ["wish", "Lời chúc chung. Dùng {name} để chèn tên từng bạn", true, 1]
+  ];
+  var LABEL_FIELDS = [
+    ["name", "Dòng 1: Họ và tên"], ["birthday", "Dòng 2: Ngày sinh"], ["role", "Dòng 3: Chức vụ"],
+    ["trait", "Dòng 4: Đặc điểm"], ["validity", "Dòng 5: Thời hạn"]
+  ];
+  var dirty = false, saving = false, query = "", confirmIdx = -1;
+
+  function setDirty(v) {
+    dirty = v;
+    $("btnSave").disabled = !v || saving;
+    var m = $("saveMsg");
+    m.className = "astatus" + (v ? " warn" : "");
+    m.textContent = v ? "Có thay đổi chưa xuất bản." : "Chưa có thay đổi.";
+  }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function field(label, node, full) {
+    var w = el("label", "fld" + (full ? " full" : ""));
+    w.appendChild(el("span", null, label));
+    w.appendChild(node);
+    return w;
+  }
+  function input(value, attrs) {
+    var n = el("input", "in");
+    n.type = "text"; n.value = value || "";
+    Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+
+  function renderCfg() {
+    var f = $("cfgForm"); f.innerHTML = "";
+    CFG_FIELDS.forEach(function (d) {
+      var n = d[2] ? el("textarea", "in") : el("input", "in");
+      if (!d[2]) n.type = "text";
+      n.value = C[d[0]] || "";
+      n.setAttribute("data-cfg", d[0]);
+      f.appendChild(field(d[1], n, !!d[3]));
+    });
+    var h = el("p", "sub", "Tên các dòng thông tin trên chứng nhận"); h.className += " full";
+    f.appendChild(h);
+    LABEL_FIELDS.forEach(function (d) {
+      var n = input(C.labels[d[0]], { "data-lbl": d[0] });
+      f.appendChild(field(d[1], n, false));
+    });
+  }
+  $("cfgForm").addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.hasAttribute("data-cfg")) { C[t.getAttribute("data-cfg")] = t.value; setDirty(true); }
+    else if (t.hasAttribute("data-lbl")) { C.labels[t.getAttribute("data-lbl")] = t.value; setDirty(true); }
+  });
+
+  function renderPeople() {
+    var box = $("people"); box.innerHTML = "";
+    $("count").textContent = "(" + G.length + ")";
+    $("btnClearSamples").hidden = !G.some(function (g) { return g.sample; });
+    var q = query.trim().toLowerCase(), shown = 0;
+    G.forEach(function (g, i) {
+      if (q && g.name.toLowerCase().indexOf(q) < 0) return;
+      shown++;
+      var card = el("div", "person"); card.setAttribute("data-i", i);
+
+      var pcol = el("div", "pcol");
+      var th = el("button", "thumb"); th.type = "button"; th.setAttribute("data-act", "photo");
+      th.setAttribute("aria-label", "Đổi ảnh của " + g.name);
+      if (g.photo) { var im = new Image(); im.src = g.photo; im.alt = ""; th.appendChild(im); } else { th.textContent = initial(g.name); }
+      pcol.appendChild(th);
+      if (g.photo) { var rm = el("button", "mini", "Bỏ ảnh"); rm.type = "button"; rm.setAttribute("data-act", "nophoto"); pcol.appendChild(rm); }
+      card.appendChild(pcol);
+
+      var body = el("div", "pbody");
+      var grid = el("div", "fgrid");
+      [["name", "Họ và tên", true], ["nickname", "Tên gọi trong lời chúc", false], ["birthday", "Ngày sinh", false],
+       ["role", "Chức vụ", false], ["trait", "Đặc điểm", false]].forEach(function (d) {
+        grid.appendChild(field(d[1], input(g[d[0]], { "data-f": d[0] }), d[2]));
+      });
+      body.appendChild(grid);
+
+      var det = el("details");
+      det.appendChild(el("summary", null, "Tùy chỉnh riêng cho bạn này"));
+      var g2 = el("div", "fgrid");
+      var wt = el("textarea", "in"); wt.value = g.wish || ""; wt.setAttribute("data-f", "wish");
+      wt.placeholder = "Bỏ trống để dùng lời chúc chung";
+      g2.appendChild(field("Lời chúc riêng (dùng {name} để chèn tên)", wt, true));
+      var v = input(g.validity, { "data-f": "validity", placeholder: "Bỏ trống để dùng thời hạn chung" });
+      g2.appendChild(field("Thời hạn riêng", v, false));
+      var idn = input(g.id, { "data-f": "id", placeholder: "Bỏ trống để tự đánh số" });
+      g2.appendChild(field("Mã số riêng", idn, false));
+      det.appendChild(g2);
+      body.appendChild(det);
+
+      var btns = el("div", "pbtns");
+      var del = el("button", "mini danger", confirmIdx === i ? "Bấm lần nữa để xóa" : "Xóa bạn này");
+      del.type = "button"; del.setAttribute("data-act", "del");
+      btns.appendChild(del);
+      if (g.sample) btns.appendChild(el("span", "note", "Dữ liệu mẫu"));
+      body.appendChild(btns);
+      card.appendChild(body);
+      box.appendChild(card);
+    });
+    if (!shown) {
+      box.appendChild(el("p", "empty", G.length ? "Không có bạn nào khớp với tìm kiếm." : "Chưa có bạn nào. Bấm \"Thêm bạn\" để bắt đầu."));
+    }
+  }
+
+  $("people").addEventListener("input", function (e) {
+    var t = e.target, f = t.getAttribute("data-f"), card = t.closest("[data-i]");
+    if (!f || !card) return;
+    var g = G[Number(card.getAttribute("data-i"))];
+    g[f] = t.value; delete g.sample; setDirty(true);
+  });
+  $("people").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-act]"), card = e.target.closest("[data-i]");
+    if (!b || !card) return;
+    var i = Number(card.getAttribute("data-i")), act = b.getAttribute("data-act");
+    if (act === "photo") { photoTarget = i; $("fileInput").value = ""; $("fileInput").click(); }
+    else if (act === "nophoto") { G[i].photo = ""; delete G[i].sample; setDirty(true); renderPeople(); }
+    else if (act === "del") {
+      if (confirmIdx === i) { G.splice(i, 1); confirmIdx = -1; setDirty(true); }
+      else { confirmIdx = i; }
+      renderPeople();
+    }
+  });
+  $("search").addEventListener("input", function (e) { query = e.target.value; confirmIdx = -1; renderPeople(); });
+
+  $("btnAdd").addEventListener("click", function () {
+    query = ""; $("search").value = ""; confirmIdx = -1;
+    G.push({ name: "Họ và tên mới", nickname: "", birthday: "", role: "", trait: "", photo: "" });
+    setDirty(true); renderPeople();
+    var cards = $("people").children, last = cards[cards.length - 1];
+    if (last) { last.scrollIntoView({ block: "center" }); var inp = last.querySelector('[data-f="name"]'); if (inp) { inp.focus(); inp.select(); } }
+  });
+  $("btnClearSamples").addEventListener("click", function () {
+    DATA.girls = G = G.filter(function (g) { return !g.sample; });
+    setDirty(true); renderPeople();
+  });
+  $("btnBulk").addEventListener("click", function () {
+    var lines = $("bulk").value.split(/\r?\n/), added = 0;
+    lines.forEach(function (ln) {
+      if (!ln.trim()) return;
+      var p = ln.split(/\t|\|/).map(function (s) { return s.trim(); });
+      var name = p[0]; if (!name) return;
+      var parts = name.split(/\s+/);
+      G.push({ name: name, nickname: parts.slice(-2).join(" "), birthday: p[1] || "", role: p[2] || "", trait: p[3] || "", photo: "" });
+      added++;
+    });
+    if (added) { $("bulk").value = ""; setDirty(true); renderPeople(); $("saveMsg").textContent = "Đã thêm " + added + " bạn. Nhớ bấm \"Lưu và xuất bản\"."; }
+  });
+
+  /* Ảnh: thu nhỏ rồi nhúng thẳng vào trang */
+  var photoTarget = -1;
+  $("fileInput").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file || photoTarget < 0) return;
+    var idx = photoTarget, url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var max = 640, s = Math.min(1, max / Math.max(img.width, img.height));
+      var cv = document.createElement("canvas");
+      cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      G[idx].photo = cv.toDataURL("image/jpeg", 0.85); delete G[idx].sample;
+      URL.revokeObjectURL(url); setDirty(true); renderPeople();
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); $("saveMsg").className = "astatus warn"; $("saveMsg").textContent = "Không đọc được ảnh này. Hãy thử ảnh JPG hoặc PNG."; };
+    img.src = url;
+  });
+
+  /* Lưu: xuất bản lại chính trang này (link giữ nguyên) */
+  $("btnSave").addEventListener("click", function () {
+    if (!dirty || saving) return;
+    saving = true; $("btnSave").disabled = true;
+    $("saveMsg").className = "astatus"; $("saveMsg").textContent = "Đang xuất bản…";
+    try { sessionStorage.setItem("openAdmin", "1"); } catch (e) {}
+    window.claude.use("artifact").then(function (art) {
+      if (!art) throw { code: "not_granted" };
+      return art.publish(buildDoc());
+    }).catch(function (err) {
+      saving = false; $("btnSave").disabled = false;
+      var code = err && err.code, m = $("saveMsg"); m.className = "astatus warn";
+      if (code === "conflict") m.textContent = "Trang vừa được cập nhật ở nơi khác nên đã tải lại. Hãy kiểm tra rồi lưu lại.";
+      else if (code === "not_writer" || code === "not_granted") m.textContent = "Tài khoản này không có quyền xuất bản trang.";
+      else if (code === "too_large") m.textContent = "Trang quá nặng. Hãy dùng ảnh nhỏ hơn hoặc bỏ bớt ảnh.";
+      else if (code === "rate_limited") m.textContent = "Lưu quá nhanh. Đợi vài giây rồi thử lại.";
+      else m.textContent = "Chưa lưu được. Thử lại sau ít giây.";
+    });
+  });
+
+  /* ---------- Chuyển giữa trang công khai và quản trị ---------- */
+  function showAdmin(on) {
+    $("adminView").hidden = !on; $("publicView").hidden = on;
+    $("adminFab").hidden = on || !isOwner; $("adminFab").textContent = "Quản trị";
+    window.scrollTo(0, 0);
+  }
+  var isOwner = false;
+  $("adminFab").addEventListener("click", function () { showAdmin(true); });
+  $("btnPublicView").addEventListener("click", function () { showAdmin(false); });
+
+  renderPublic(); renderCfg(); renderPeople(); setDirty(false);
+
+  /* Chỉ chủ trang mới thấy phần quản trị */
+  window.claude.use("user").then(function (u) {
+    return u ? u.isOwner() : false;
+  }).catch(function () { return false; }).then(function (own) {
+    isOwner = !!own;
+    if (!isOwner) return;
+    var open = false;
+    try { open = sessionStorage.getItem("openAdmin") === "1"; sessionStorage.removeItem("openAdmin"); } catch (e) {}
+    showAdmin(open);
+  });
 })();
 </script>
 
